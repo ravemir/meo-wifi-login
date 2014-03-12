@@ -1,5 +1,5 @@
 #meo-wifi-login
-==============
+
 ## Description:
 Allows automated login through a MEO Wifi Premium hotspot
 
