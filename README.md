@@ -4,13 +4,13 @@
 Allows for an automated login through a MEO Wifi Premium hotspot.
 
 ## Usage
-You may use 'meo_wifi_login.py' file as regular script, running it via commandline...:
+You may use 'meo_wifi_login.py' file as regular script, running it via CLI...:
 
 ```
 ./meo_wifi_login -u <username> -p <password>
 ```
 
-...or call the 'meo_wifi_login' function:
+...or call the 'meo_wifi_login' function through your script:
 ```
 import meo_wifi_login
 
