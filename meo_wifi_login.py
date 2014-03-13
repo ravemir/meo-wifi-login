@@ -1,27 +1,29 @@
 #!/usr/bin/python
+
 import os
 import sys
 import getopt
 import getpass
 
-from mechanize import Browser
-import urllib
+import requests
+import json
 
 
-# Creates a POST request with the required data to login to a MEO Wifi Premium Hotspot
+# Sends a POST request with the required data to login to a MEO Wifi Premium Hotspot
 def meo_wifi_login(username, password):
-  br = Browser()
-  url ='https://wifi.meo.pt/HttpHandlers/HotspotConnection.asmx/Login?usr=' + username
-  data = urllib.urlencode({
-              'username': username,
-              'password': password })
-  response = br.open(url,data).read()
+  url ='https://wifi.meo.pt/HttpHandlers/HotspotConnection.asmx/Login' + '?usr=' + username
+  headers = {'content-type': 'application/json'}
+  payload = {'username': username, 'password': password}
+  response = requests.post(url, data=json.dumps(payload), headers=headers)
+
   return response
 
+# Sends a POST request to logoff from a MEO Wifi Premium Hotspot
 def meo_wifi_logoff():
-  br = Browser()
   url = 'https://wifi.meo.pt/HttpHandlers/HotspotConnection.asmx/Logoff'
-  response = br.open(url,data).read()
+  headers = {'content-type': 'application/json'}
+  response = requests.post(url, headers=headers)
+
   return response
 
 def main():

@@ -23,17 +23,17 @@ In case neither of these sources are available, it will prompt the user via cons
 
 
 ## Required Python libraries
-Beyond the standard Python libraries, you need the 'mechanize' library.
+Beyond the standard Python libraries, you need the 'requests' library.
 
 You can install it using pip:
 
 ```
-pip install mechanize
+pip install requests 
 ```
 
 Several Linux distros also have a package for it. For example, in Ubuntu 12.04 you can:
 
 ```
-sudo apt-get install python-mechanize
+sudo apt-get install python-requests
 ```
 
