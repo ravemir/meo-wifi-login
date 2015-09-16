@@ -40,7 +40,7 @@ sudo apt-get install python-requests
 ###Note:
 Python earlier than 2.7.9 has some restrictions on their 'ssl' module that limits the configuration 'urllib3' can apply.
 
-If you have a `InsecurePlatformWarning` error, update Python to 2.7.9+ or install 'requests' and its extra packages with:
+If you have a `InsecurePlatformWarning` error, update Python to v2.7.9+ or install 'requests' extra package set 'security' with:
 
 
 ```
