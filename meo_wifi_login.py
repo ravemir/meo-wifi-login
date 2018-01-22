@@ -11,9 +11,7 @@ import json
 
 # Sends a POST request with the required data to login to a MEO Wifi Premium Hotspot
 def meo_wifi_login(username, password):
-  url ='"https://servicoswifi.apps.meo.pt/HotspotConnection.asmx/Login?username=' + username+ '&password=' + password + '&navigatorLang=pt&callback=foo'
-  #headers = {'content-type': 'application/json'}
-  #payload = {'username': username, 'password': password}
+  url ='https://servicoswifi.apps.meo.pt/HotspotConnection.asmx/Login?username=' + username+ '&password=' + password + '&navigatorLang=pt&callback=foo'
   response = requests.get(url)
 
   return response
