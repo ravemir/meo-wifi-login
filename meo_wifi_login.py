@@ -18,9 +18,8 @@ def meo_wifi_login(username, password):
 
 # Sends a POST request to logoff from a MEO Wifi Premium Hotspot
 def meo_wifi_logoff():
-  url = 'https://wifi.meo.pt/HttpHandlers/HotspotConnection.asmx/Logoff'
-  headers = {'content-type': 'application/json'}
-  response = requests.post(url, headers=headers)
+  url = 'https://servicoswifi.apps.meo.pt/HotspotConnection.asmx/Logoff?callback=foo'
+  response = requests.get(url)
 
   return response
 
@@ -30,10 +29,14 @@ def main():
   passwd=os.getenv('MEO_WIFI_PASSWORD', '')
 
   # Parse the arguments
-  opts, args = getopt.getopt(sys.argv[1:], "hu:p:")
+  opts, args = getopt.getopt(sys.argv[1:], "hxu:p:")
   for (opt, arg) in opts:
     if opt == '-h':
       print sys.argv[0] + '-u <login user> -p <login password>'
+      sys.exit()
+    elif opt == '-x':
+      print 'Logging off...'
+      print meo_wifi_logoff()
       sys.exit()
     elif opt == '-u':
       user = arg
