@@ -23,12 +23,12 @@ In case neither of these sources are available, it will prompt the user via cons
 
 
 ## Required Python libraries
-Beyond the standard Python libraries, you need the 'requests' and 'encryption' libraries.
+Beyond the standard Python libraries, you need the 'requests' and 'cryptography' libraries.
 
 You can install them using pip:
 
 ```
-pip install requests encryption
+pip install requests cryptography
 ```
 
 Several Linux distros also have packages for them. For example, in Debian 10 you can install them like this:
