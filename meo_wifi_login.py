@@ -23,7 +23,7 @@ def encrypt_password(ip, password):
     # Salt for PBKDF2
     salt = bytearray.fromhex("77232469666931323429396D656F3938574946")
     # Initialization vector for CBC
-    iv = bytearray.fromhex("72c4721ae01ae0e8e84bd64ad66060c4")
+    iv = bytes(bytearray.fromhex("72c4721ae01ae0e8e84bd64ad66060c4"))
     
     # Generate key from IP address
     key = hashlib.pbkdf2_hmac("sha1", ip.encode("utf8"), salt, 100, dklen=32)
