@@ -120,16 +120,19 @@ def get_state():
   state = read_jsonp(response.content.decode(response.encoding))
   return state
 
-def get_ip():
+def get_ip(state=None):
   """Get our LAN IP address"""
-  # It's included in the connection state.
-  # That's where the web interface gets it, too.
-  state = get_state()
+  if state is None:
+    state = get_state()
   return state["FrammedIp"]
 
 def meo_wifi_login(username, password):
   """Make a GET request with the required data to login to a MEO Wifi Premium Hotspot"""
   ip = get_ip()
+  if ip is None:
+    print("Error: failed to determine IP address.\nPlease verify that you are connected to a MEO WiFi network.")
+    sys.exit(1)
+
   encrypted_password = encrypt_password(ip, password)
   url ='https://servicoswifi.apps.meo.pt/HotspotConnection.asmx/Login?username=' + username+ '&password=' + encrypted_password + '&navigatorLang=pt&callback=foo'
   response = requests.get(url)
