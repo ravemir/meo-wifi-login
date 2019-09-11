@@ -7,21 +7,75 @@ import os
 import sys
 import getopt
 import getpass
-
-import requests
 import json
+import hashlib
+import base64
 
-import hashlib, base64
-from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
-from cryptography.hazmat.primitives.padding import PKCS7
-from cryptography.hazmat.backends import default_backend
+### Non-builtin imports
+try:
+  import requests
+except ImportError:
+  pass
 
-# Pad a message to a 128 bit multiple using PKCS7
-def padding(message):
-    padder = PKCS7(128).padder()
-    return padder.update(message.encode("utf8")) + padder.finalize()
+try:
+  from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
+  from cryptography.hazmat.primitives.padding import PKCS7
+  from cryptography.hazmat.backends import default_backend
+except ImportError:
+  pass
 
-# Encrypt the password like their Javascript code does
+try:
+  import pyaes
+except ImportError:
+  pass
+
+## Check dependency requirements
+missing_msg = []
+fail = False
+
+# Need requests
+if "requests" not in sys.modules:
+  fail = True
+  missing_msg += [ "requests" ]
+
+# Need either cryptography or pyaes
+if "cryptography" not in sys.modules and "pyaes" not in sys.modules:
+  fail = True
+  missing_msg += [ "cryptography or pyaes" ]
+
+if fail == True:
+  print("Error: missing dependencies.")
+  print("Please install the following modules: " + ", ".join(missing_msg))
+  sys.exit(1)
+
+### Encryption functions
+
+def encrypt_pyaes(key, iv, msg):
+  """encrypt using pyaes module"""
+  mode = pyaes.AESModeOfOperationCBC(key, iv=iv)
+  encrypter = pyaes.blockfeeder.Encrypter(mode)
+  return encrypter.feed(msg) + encrypter.feed()
+
+def encrypt_cryptography(key, iv, msg):
+  """encrypt using cryptography module"""
+  padder = PKCS7(128).padder()
+  msg_padded = padder.update(message.encode("utf8")) + padder.finalize()
+
+  cipher = Cipher(algorithms.AES(key),
+                  modes.CBC(iv),
+                  backend=default_backend())
+  encryptor = cipher.encryptor()
+  return encryptor.update(msg_padded) + encryptor.finalize()
+
+# Encrypt msg using AES in CBC mode and PKCS#7 padding, using either
+# cryptography or pyaes
+def encrypt(key, iv, msg):
+  if "cryptography" in sys.modules:
+    return encrypt_cryptography(key, iv, msg)
+  elif "pyaes" in sys.modules:
+    return encrypt_pyaes(key, iv, msg)
+
+# Encrypt the password like the captive portal's Javascript does
 def encrypt_password(ip, password):
     # Salt for PBKDF2
     salt = bytearray.fromhex("77232469666931323429396D656F3938574946")
@@ -32,16 +86,14 @@ def encrypt_password(ip, password):
     key = hashlib.pbkdf2_hmac("sha1", ip.encode("utf8"), salt, 100, dklen=32)
     
     # Encrypt password
-    cipher = Cipher(algorithms.AES(key),
-                    modes.CBC(iv),
-                    backend=default_backend())
-    encryptor = cipher.encryptor()
-    ciphertext = encryptor.update(padding(password)) + encryptor.finalize()
+    ciphertext = encrypt(key, iv, password)
     
     # Encode to Base64 (explicitly convert to string for Python 2/3 compat)
     ciphertext_b64 = base64.b64encode(ciphertext).decode("ascii")
     
     return ciphertext_b64
+
+### Misc
 
 # Reads a line from standard input (Python 2/3 compat)
 def get_input(prompt):
@@ -54,6 +106,8 @@ def get_input(prompt):
 def read_jsonp(jsonp):
   jsonp_stripped = jsonp[ jsonp.index("(")+1 : jsonp.rindex(")") ]
   return json.loads(jsonp_stripped)
+
+### Main application logic
 
 # Get the state of the connection from the server
 def get_state():
