@@ -10,6 +10,9 @@ import getpass
 import json
 import hashlib
 import base64
+import urllib
+if sys.version_info >= (3, 0):
+  import urllib.request
 
 ### Non-builtin imports
 try:
@@ -32,11 +35,6 @@ except ImportError:
 ## Check dependency requirements
 missing_msg = []
 fail = False
-
-# Need requests
-if "requests" not in sys.modules:
-  fail = True
-  missing_msg += [ "requests" ]
 
 # Need either cryptography or pyaes
 if "cryptography" not in sys.modules and "pyaes" not in sys.modules:
@@ -111,13 +109,67 @@ def read_jsonp(jsonp):
   jsonp_stripped = jsonp[ jsonp.index("(")+1 : jsonp.rindex(")") ]
   return json.loads(jsonp_stripped)
 
+### Networking
+
+class UrlOpen:
+  """Wrapper around urllib for http requests."""
+  
+  def __init__(self, url, maxsize=2**20):
+    """Makes the request and reads up to maxsize bytes from the response."""
+    if sys.version_info < (3, 0):
+      conn = urllib.urlopen(url)
+    else:
+      conn = urllib.request.urlopen(url)
+    code = conn.getcode()
+    data = b''
+    while len(data) <= maxsize:
+      buf = conn.read(maxsize-len(data))
+      data += buf
+      if len(buf) == 0:
+        break
+    conn.close()
+    self.conn = conn
+    self.code = code
+    self.rawdata = data
+  
+  @property
+  def text(self):
+    """Decoded response data"""
+    # TODO: Get the right character encoding from the response headers.
+    return self.rawdata.decode("utf-8")
+  
+  @property
+  def response(self):
+    """Human-readable representation of response code"""
+    # TODO: improve
+    if (self.code == 200):
+      return "OK"
+    else:
+      return "Unexpected response. Code: " + self.code
+
+def get_url_text(url):
+  """Get url and return the decoded response data."""
+  # Use 'requests' by default and urllib as fallback
+  if "requests" in sys.modules:
+    response = requests.get(url)
+    return response.content.decode(response.encoding)
+  else:
+    return UrlOpen(url).text
+
+def get_url_result(url):
+  """Get url and return the response code"""
+  # Use 'requests' by default and urllib as fallback
+  if "requests" in sys.modules:
+    return requests.get(url)
+  else:
+    return UrlOpen(url).response
+
 ### Main application logic
 
 def get_state():
   """Get the state of the connection from the server"""
   url = 'https://servicoswifi.apps.meo.pt/HotspotConnection.asmx/GetState?callback=foo&mobile=false&pagePath=foo'
-  response = requests.get(url)
-  state = read_jsonp(response.content.decode(response.encoding))
+  state = read_jsonp(get_url_text(url))
   return state
 
 def get_ip(state=None):
@@ -135,14 +187,14 @@ def meo_wifi_login(username, password):
 
   encrypted_password = encrypt_password(ip, password)
   url ='https://servicoswifi.apps.meo.pt/HotspotConnection.asmx/Login?username=' + username+ '&password=' + encrypted_password + '&navigatorLang=pt&callback=foo'
-  response = requests.get(url)
+  response = get_url_result(url)
 
   return response
 
 def meo_wifi_logoff():
   """Make a GET request to logoff from a MEO Wifi Premium Hotspot"""
   url = 'https://servicoswifi.apps.meo.pt/HotspotConnection.asmx/Logoff?callback=foo'
-  response = requests.get(url)
+  response = get_url_result(url)
 
   return response
 
