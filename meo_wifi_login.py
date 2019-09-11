@@ -1,5 +1,8 @@
 #!/usr/bin/python
 
+from __future__ import absolute_import
+from __future__ import print_function
+
 import os
 import sys
 import getopt
@@ -35,11 +38,17 @@ def encrypt_password(ip, password):
     encryptor = cipher.encryptor()
     ciphertext = encryptor.update(padding(password)) + encryptor.finalize()
     
-    # Encode to Base64
-    ciphertext_b64 = base64.b64encode(ciphertext)
+    # Encode to Base64 (explicitly convert to string for Python 2/3 compat)
+    ciphertext_b64 = base64.b64encode(ciphertext).decode("ascii")
     
     return ciphertext_b64
 
+# Reads a line from standard input (Python 2/3 compat)
+def get_input(prompt):
+  if sys.version_info < (3, 0):
+    return raw_input(prompt)
+  else:
+    return input(prompt)
 
 # Read a jsonp string.
 def read_jsonp(jsonp):
@@ -84,11 +93,11 @@ def main():
   opts, args = getopt.getopt(sys.argv[1:], "hxu:p:")
   for (opt, arg) in opts:
     if opt == '-h':
-      print sys.argv[0] + '-u <login user> -p <login password>'
+      print(sys.argv[0] + '-u <login user> -p <login password>')
       sys.exit()
     elif opt == '-x':
-      print 'Logging off...'
-      print meo_wifi_logoff()
+      print('Logging off...')
+      print(meo_wifi_logoff())
       sys.exit()
     elif opt == '-u':
       user = arg
@@ -97,12 +106,12 @@ def main():
 
   # Determine if user and passwords were specified (and ask for them if not)
   if not user:
-    user=raw_input('Introduza o e-mail Cliente MEO: ')
+    user=get_input('Introduza o e-mail Cliente MEO: ')
   if not passwd:
     passwd=getpass.getpass('Introduza a password Cliente MEO (' + user + '): ')
 
   # After gathering the necessary data, execute the request
-  print meo_wifi_login(user,passwd)
+  print(meo_wifi_login(user,passwd))
 
 if __name__ == '__main__':
   main()
