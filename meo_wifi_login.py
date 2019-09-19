@@ -13,6 +13,7 @@ import base64
 import urllib
 if sys.version_info >= (3, 0):
   import urllib.request
+  urllib = urllib.request
 
 ### Non-builtin imports
 try:
@@ -57,7 +58,7 @@ def encrypt_pyaes(key, iv, msg):
 def encrypt_cryptography(key, iv, msg):
   """encrypt using cryptography module"""
   padder = PKCS7(128).padder()
-  msg_padded = padder.update(message.encode("utf8")) + padder.finalize()
+  msg_padded = padder.update(msg.encode("utf8")) + padder.finalize()
 
   cipher = Cipher(algorithms.AES(key),
                   modes.CBC(iv),
@@ -93,7 +94,7 @@ def encrypt_password(ip, password):
   # Encode to Base64 (explicitly convert to string for Python 2/3 compat)
   ciphertext_b64 = base64.b64encode(ciphertext).decode("ascii")
   
-  return ciphertext_b64
+  return urllib.quote(ciphertext_b64)
 
 ### Misc
 
@@ -116,10 +117,7 @@ class UrlOpen:
   
   def __init__(self, url, maxsize=2**20):
     """Makes the request and reads up to maxsize bytes from the response."""
-    if sys.version_info < (3, 0):
-      conn = urllib.urlopen(url)
-    else:
-      conn = urllib.request.urlopen(url)
+    conn = urllib.urlopen(url)
     code = conn.getcode()
     data = b''
     while len(data) <= maxsize:
