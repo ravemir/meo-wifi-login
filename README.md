@@ -1,46 +1,57 @@
-#meo-wifi-login
+# meo-wifi-login
 
 ## Description:
 Allows for an automated login through a MEO Wifi Premium hotspot.
 
 ## Usage
-You may use 'meo_wifi_login.py' file as regular script, running it via CLI...:
+You may use `meo_wifi_login.py` file as regular script, running it via CLI...:
 
 ```
 ./meo_wifi_login -u <username> -p <password>
 ```
 
-...or call the 'meo_wifi_login' function through your script:
+...or call the `meo_wifi_login` function through your script:
 ```
 import meo_wifi_login
 
 meo_wifi_login.meo_wifi_login('user','pass')
 ```
 
-The script also looks for a 'MEO_WIFI_USER' and 'MEO_WIFI_PASSWORD' environment variable for the login information.
+The script also looks for a `MEO_WIFI_USER` and `MEO_WIFI_PASSWORD` environment variable for the login information.
 
 In case neither of these sources are available, it will prompt the user via console to fill them
 
 
-## Required Python libraries
-Beyond the standard Python libraries, you need the 'requests' library.
+## Dependencies
+Beyond the standard Python libraries, you may need to install the following:
 
-You can install it using pip:
+- `requests` *(optional, recommended)*
+- `cryptography` *OR* `pyaes`
 
-```
-pip install requests 
-```
-
-Several Linux distros also have a package for it. For example, in Ubuntu 12.04 you can:
+You can install them using pip. For example:
 
 ```
-sudo apt-get install python-requests
+pip install requests cryptography
 ```
 
-###Note:
-Python earlier than 2.7.9 has some restrictions on their 'ssl' module that limits the configuration 'urllib3' can apply.
+Several Linux distros also have packages for them. For example, in Debian 10 you can install them like this:
 
-If you have a `InsecurePlatformWarning` error, update Python to v2.7.9+ or install 'requests' extra package set 'security' with:
+```
+sudo apt-get install python-requests python-cryptography
+```
+
+
+### Notes
+- `requests` is used to make HTTPS requests. A working (but probably less robust) urllib-based fallback is included.
+- `cryptography` and `pyaes` are used to encrypt the password using AES.
+- `cryptography` is preferred and more likely to already be installed or available in distributions.
+- `pyaes` is a pure python alternative to `cryptography` and is good to have for when `cryptography` is harder to install. (e.g. Termux)
+- The code has been ported to work on both Python 2 and 3. Make sure you install your dependencies for the version of Python you will be running the script with.
+
+#### Python < 2.7.9
+Python earlier than 2.7.9 has some restrictions on their `ssl` module that limits the configuration `urllib3` can apply.
+
+If you have a `InsecurePlatformWarning` error, update Python to v2.7.9+ or install `requests` extra package set `security` with:
 
 
 ```
