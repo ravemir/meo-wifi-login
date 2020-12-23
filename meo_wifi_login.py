@@ -94,7 +94,7 @@ def encrypt_password(ip, password):
   # Encode to Base64 (explicitly convert to string for Python 2/3 compat)
   ciphertext_b64 = base64.b64encode(ciphertext).decode("ascii")
   
-  return urllib.quote(ciphertext_b64)
+  return urllib.quote(ciphertext_b64, safe='')
 
 ### Misc
 
