@@ -150,7 +150,7 @@ def get_url_text(url):
   # Use 'requests' by default and urllib as fallback
   if "requests" in sys.modules:
     response = requests.get(url)
-    return response.content.decode(response.encoding)
+    return response.content.decode(response.encoding or 'utf-8')
   else:
     return UrlOpen(url).text
 
@@ -166,7 +166,7 @@ def get_url_result(url):
 
 def get_state():
   """Get the state of the connection from the server"""
-  url = 'https://servicoswifi.apps.meo.pt/HotspotConnection.asmx/GetState?callback=foo&mobile=false&pagePath=foo'
+  url = 'https://servicoswifi.apps.meo.pt/HotspotConnection.svc/GetState?callback=foo&mobile=false&pagePath=foo'
   state = read_jsonp(get_url_text(url))
   return state
 
@@ -184,14 +184,14 @@ def meo_wifi_login(username, password):
     sys.exit(1)
 
   encrypted_password = encrypt_password(ip, password)
-  url ='https://servicoswifi.apps.meo.pt/HotspotConnection.asmx/Login?username=' + username+ '&password=' + encrypted_password + '&navigatorLang=pt&callback=foo'
+  url ='https://servicoswifi.apps.meo.pt/HotspotConnection.svc/Login?username=' + username+ '&password=' + encrypted_password + '&navigatorLang=pt&callback=foo'
   response = get_url_result(url)
 
   return response
 
 def meo_wifi_logoff():
   """Make a GET request to logoff from a MEO Wifi Premium Hotspot"""
-  url = 'https://servicoswifi.apps.meo.pt/HotspotConnection.asmx/Logoff?callback=foo'
+  url = 'https://servicoswifi.apps.meo.pt/HotspotConnection.svc/Logoff?callback=foo'
   response = get_url_result(url)
 
   return response
@@ -205,7 +205,7 @@ def main():
   opts, args = getopt.getopt(sys.argv[1:], "hxu:p:")
   for (opt, arg) in opts:
     if opt == '-h':
-      print(sys.argv[0] + '-u <login user> -p <login password>')
+      print(sys.argv[0] + ' -u <login user> -p <login password>')
       sys.exit()
     elif opt == '-x':
       print('Logging off...')
