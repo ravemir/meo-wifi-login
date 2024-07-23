@@ -197,7 +197,13 @@ def get_ip():
     finally:
         s.close()
     return IP
-  
+
+def get_session_id(ip):
+    url = 'https://meowifi.meo.pt/wifim-scl/service/session-status'
+    body = {'ipAddress': ip}
+    response = post_url_result(url, body)
+    sessionId = response.json()['sessionId']
+    return sessionId
 
 def meo_wifi_login(username, password, legacy):
   """Make a GET request with the required data to login to a MEO Wifi Premium Hotspot"""
@@ -220,13 +226,6 @@ def meo_wifi_login(username, password, legacy):
     response = post_url_result(url, login_body)
   
   return response
-
-def get_session_id(ip):
-    url = 'https://meowifi.meo.pt/wifim-scl/service/session-status'
-    body = {'ipAddress': ip}
-    response = post_url_result(url, body)
-    sessionId = response.json()['sessionId']
-    return sessionId
 
 def meo_wifi_logoff(legacy):
   """Make a GET request to logoff from a MEO Wifi Premium Hotspot"""
