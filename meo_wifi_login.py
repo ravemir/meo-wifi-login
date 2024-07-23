@@ -252,7 +252,7 @@ def main():
       legacy = True
     elif opt == '-x':
       print('Logging off...')
-      print(meo_wifi_logoff())
+      print(meo_wifi_logoff(legacy))
       sys.exit()
     elif opt == '-u':
       user = arg
