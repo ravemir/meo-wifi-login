@@ -198,8 +198,6 @@ def get_ip():
         s.close()
     return IP
   
-def get_unix_timestamp():
-  return str(int(time.time()*1000))
 
 def meo_wifi_login(username, password, legacy):
   """Make a GET request with the required data to login to a MEO Wifi Premium Hotspot"""
