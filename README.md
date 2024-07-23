@@ -22,7 +22,10 @@ The script also looks for a `MEO_WIFI_USER` and `MEO_WIFI_PASSWORD` environment 
 In case neither of these sources are available, it will prompt the user via console to fill them
 
 Starting July 2024, a new login portal was observed across some routers, hosted under "meowifi.meo.pt" and the script was adapted to its login method.
-The old login method, targetting "servicoswifi.apps.meo.pt" is still available through the legacy ('-l') option, for both login and logout operations.
+
+The old login method, targetting "servicoswifi.apps.meo.pt" is still available through:
+- the command-line legacy ('-l') option, for both login and logout operations;
+- the "legacy" argument for both "meo_wifi_login" and "meo_wifi_logoff".
 
 ## Dependencies
 Beyond the standard Python libraries, you may need to install the following:
