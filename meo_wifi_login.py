@@ -199,7 +199,7 @@ def get_ip():
     return IP
   
 def get_unix_timestamp():
-  return str(int(time.time()))
+  return str(int(time.time()*1000))
 
 def meo_wifi_login(username, password, legacy):
   """Make a GET request with the required data to login to a MEO Wifi Premium Hotspot"""
@@ -216,19 +216,27 @@ def meo_wifi_login(username, password, legacy):
     url ='https://servicoswifi.apps.meo.pt/HotspotConnection.svc/Login?username=' + username+ '&password=' + encrypted_password + '&navigatorLang=pt&callback=foo'
     response = get_url_result(url)
   else:
-    sessionId = '10_F8FE5E26B029_'+get_unix_timestamp()
+    sessionId = get_session_id(ip)
     url = 'https://meowifi.meo.pt/wifim-scl/service/'+sessionId+'/session-login'
-    body = {'userName': username, 'password': password, 'ipAddress': ip, 'sessionId': sessionId, 'loginType': 'login'}
-    response = post_url_result(url, body)
-
+    login_body = {'userName': username, 'password': password, 'ipAddress': ip, 'sessionId': sessionId, 'loginType': 'login'}
+    response = post_url_result(url, login_body)
+  
   return response
+
+def get_session_id(ip):
+    url = 'https://meowifi.meo.pt/wifim-scl/service/session-status'
+    body = {'ipAddress': ip}
+    response = post_url_result(url, body)
+    sessionId = response.json()['sessionId']
+    return sessionId
 
 def meo_wifi_logoff(legacy):
   """Make a GET request to logoff from a MEO Wifi Premium Hotspot"""
   if legacy:
     url = 'https://servicoswifi.apps.meo.pt/HotspotConnection.svc/Logoff?callback=foo'
   else:
-    sessionId = '10_F8FE5E26B029_'+get_unix_timestamp()
+    ip = get_ip()
+    sessionId = get_session_id(ip)
     url = 'https://meowifi.meo.pt/wifim-scl/service/'+sessionId+'/session-logoff'
     
   response = get_url_result(url)
