@@ -5,6 +5,8 @@ from __future__ import print_function
 
 import os
 import sys
+import socket
+import time
 import getopt
 import getpass
 import json
@@ -161,6 +163,14 @@ def get_url_result(url):
     return requests.get(url)
   else:
     return UrlOpen(url).response
+  
+def post_url_result(url, body):
+  """POST url and return the response code"""
+  # Use 'requests' by default and urllib as fallback
+  if "requests" in sys.modules:
+    return requests.post(url, json = body)
+  else:
+    return UrlOpen(url, data=body).response
 
 ### Main application logic
 
@@ -170,28 +180,57 @@ def get_state():
   state = read_jsonp(get_url_text(url))
   return state
 
-def get_ip(state=None):
+def get_ip_legacy(state=None):
   """Get our LAN IP address"""
   if state is None:
     state = get_state()
   return state["FrammedIp"]
 
-def meo_wifi_login(username, password):
-  """Make a GET request with the required data to login to a MEO Wifi Premium Hotspot"""
-  ip = get_ip()
-  if ip is None:
-    print("Error: failed to determine IP address.\nPlease verify that you are connected to a MEO WiFi network.")
-    sys.exit(1)
+def get_ip():
+    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    try:
+        # doesn't even have to be reachable
+        s.connect(('10.255.255.255', 1))
+        IP = s.getsockname()[0]
+    except:
+        IP = '127.0.0.1'
+    finally:
+        s.close()
+    return IP
+  
+def get_unix_timestamp():
+  return str(int(time.time()))
 
-  encrypted_password = encrypt_password(ip, password)
-  url ='https://servicoswifi.apps.meo.pt/HotspotConnection.svc/Login?username=' + username+ '&password=' + encrypted_password + '&navigatorLang=pt&callback=foo'
-  response = get_url_result(url)
+def meo_wifi_login(username, password, legacy):
+  """Make a GET request with the required data to login to a MEO Wifi Premium Hotspot"""
+  if legacy:
+    ip = get_ip_legacy()
+    if ip is None:
+        print("Error: failed to determine IP address.\nPlease verify that you are connected to a MEO WiFi network.")
+        sys.exit(1)
+  else:
+    ip = get_ip()
+
+  if legacy:
+    encrypted_password = encrypt_password(ip, password)
+    url ='https://servicoswifi.apps.meo.pt/HotspotConnection.svc/Login?username=' + username+ '&password=' + encrypted_password + '&navigatorLang=pt&callback=foo'
+    response = get_url_result(url)
+  else:
+    sessionId = '10_F8FE5E26B029_'+get_unix_timestamp()
+    url = 'https://meowifi.meo.pt/wifim-scl/service/'+sessionId+'/session-login'
+    body = {'userName': username, 'password': password, 'ipAddress': ip, 'sessionId': sessionId, 'loginType': 'login'}
+    response = post_url_result(url, body)
 
   return response
 
-def meo_wifi_logoff():
+def meo_wifi_logoff(legacy):
   """Make a GET request to logoff from a MEO Wifi Premium Hotspot"""
-  url = 'https://servicoswifi.apps.meo.pt/HotspotConnection.svc/Logoff?callback=foo'
+  if legacy:
+    url = 'https://servicoswifi.apps.meo.pt/HotspotConnection.svc/Logoff?callback=foo'
+  else:
+    sessionId = '10_F8FE5E26B029_'+get_unix_timestamp()
+    url = 'https://meowifi.meo.pt/wifim-scl/service/'+sessionId+'/session-logoff'
+    
   response = get_url_result(url)
 
   return response
@@ -200,13 +239,17 @@ def main():
   # Retrieve environment variables
   user=os.getenv('MEO_WIFI_USER', '')
   passwd=os.getenv('MEO_WIFI_PASSWORD', '')
+  
+  legacy = False
 
   # Parse the arguments
-  opts, args = getopt.getopt(sys.argv[1:], "hxu:p:")
+  opts, args = getopt.getopt(sys.argv[1:], "hlxu:p:")
   for (opt, arg) in opts:
     if opt == '-h':
       print(sys.argv[0] + ' -u <login user> -p <login password>')
       sys.exit()
+    elif opt == '-l':
+      legacy = True
     elif opt == '-x':
       print('Logging off...')
       print(meo_wifi_logoff())
@@ -223,7 +266,7 @@ def main():
     passwd=getpass.getpass('Introduza a password Cliente MEO (' + user + '): ')
 
   # After gathering the necessary data, execute the request
-  print(meo_wifi_login(user,passwd))
+  print(meo_wifi_login(user,passwd, legacy))
 
 if __name__ == '__main__':
   main()
