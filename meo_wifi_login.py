@@ -205,7 +205,7 @@ def get_session_id(ip):
     sessionId = response.json()['sessionId']
     return sessionId
 
-def meo_wifi_login(username, password, legacy):
+def meo_wifi_login(username, password, legacy=False):
   """Make a GET request with the required data to login to a MEO Wifi Premium Hotspot"""
   if legacy:
     ip = get_ip_legacy()
@@ -227,7 +227,7 @@ def meo_wifi_login(username, password, legacy):
   
   return response
 
-def meo_wifi_logoff(legacy):
+def meo_wifi_logoff(legacy=False):
   """Make a GET request to logoff from a MEO Wifi Premium Hotspot"""
   if legacy:
     url = 'https://servicoswifi.apps.meo.pt/HotspotConnection.svc/Logoff?callback=foo'
